@@ -1,0 +1,34 @@
+{
+  "build_command": "pnpm run build",
+  "capabilities": [],
+  "dev_command": "pnpm run dev",
+  "env_vars": {},
+  "experiments": null,
+  "git_remote": {
+    "repo_url": "https://7f0548f6b28a1758d9bf7be630d36cb4.artifacts.cloudflare.net/git/prod/SWjWzRw6LxinGDPGi5eejd.git",
+    "expiration": "2026-09-18T04:49:35.256Z",
+    "token": "art_v2_x_08eb4a86ba1dcc65c0527a24dab37ee0562303cf?expires=1789706975",
+    "backend": "GIT_BACKEND_ARTIFACTS"
+  },
+  "name": "namad-portfolio",
+  "path": "/home/ubuntu/namad-portfolio",
+  "port": 3000,
+  "secrets": {
+    "BUILT_IN_FORGE_API_KEY": "bV5Zk6hKa4Z9cnuHWW3xqx",
+    "BUILT_IN_FORGE_API_URL": "https://forge.manus.ai",
+    "JWT_SECRET": "6hc5YP7CB5sXmZisdR9Ldz",
+    "OAUTH_SERVER_URL": "https://api.manus.im",
+    "OWNER_NAME": "namad mohammed",
+    "OWNER_OPEN_ID": "iDBZSGhv8DbXxUVwXi3aV2",
+    "VITE_ANALYTICS_ENDPOINT": "https://manus-analytics.com",
+    "VITE_ANALYTICS_WEBSITE_ID": "8edf8d8f-32be-4366-a502-31c683ad468b",
+    "VITE_APP_ID": "SWjWzRw6LxinGDPGi5eejd",
+    "VITE_APP_LOGO": "",
+    "VITE_APP_TITLE": "Namad Mohammed — ERP \u0026 SAP Consultant Portfolio",
+    "VITE_FRONTEND_FORGE_API_KEY": "Y2MqcSANg8rkYTrzkfoL7X",
+    "VITE_FRONTEND_FORGE_API_URL": "https://forge.manus.ai",
+    "VITE_OAUTH_PORTAL_URL": "https://manus.im"
+  },
+  "template_id": "web-static",
+  "test_command": "pnpm test"
+}
