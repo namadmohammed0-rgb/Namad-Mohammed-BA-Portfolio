@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Router as WouterRouter, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { SapShell } from "./components/sap/SapShell";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 
@@ -26,6 +28,8 @@ function Router() {
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   return (
     <ErrorBoundary>
       <ThemeProvider
@@ -34,7 +38,9 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <SapShell drawerOpen={drawerOpen} onToggleDrawer={() => setDrawerOpen((value) => !value)}>
+            <Router />
+          </SapShell>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
