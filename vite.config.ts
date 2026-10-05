@@ -3,43 +3,79 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
-import { defineConfig, type Plugin, type ViteDevServer } from "vite";
+import {
+  defineConfig,
+  type Plugin,
+  type ViteDevServer,
+} from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 // =============================================================================
-// Manus Debug Collector - Vite Plugin
+// Project paths
 // =============================================================================
 
 const PROJECT_ROOT = import.meta.dirname;
-const LOG_DIR = path.join(PROJECT_ROOT, ".manus-logs");
+
+const LOG_DIR = path.join(
+  PROJECT_ROOT,
+  ".manus-logs"
+);
+
 const MAX_LOG_SIZE_BYTES = 1 * 1024 * 1024;
-const TRIM_TARGET_BYTES = Math.floor(MAX_LOG_SIZE_BYTES * 0.6);
+const TRIM_TARGET_BYTES = Math.floor(
+  MAX_LOG_SIZE_BYTES * 0.6
+);
 
 type LogSource =
   | "browserConsole"
   | "networkRequests"
   | "sessionReplay";
 
+// =============================================================================
+// Manus Debug Collector
+// =============================================================================
+
 function ensureLogDir() {
   if (!fs.existsSync(LOG_DIR)) {
-    fs.mkdirSync(LOG_DIR, { recursive: true });
+    fs.mkdirSync(LOG_DIR, {
+      recursive: true,
+    });
   }
 }
 
-function trimLogFile(logPath: string, maxSize: number) {
+function trimLogFile(
+  logPath: string,
+  maxSize: number
+) {
   try {
-    if (!fs.existsSync(logPath) || fs.statSync(logPath).size <= maxSize) {
+    if (
+      !fs.existsSync(logPath) ||
+      fs.statSync(logPath).size <= maxSize
+    ) {
       return;
     }
 
-    const lines = fs.readFileSync(logPath, "utf-8").split("\n");
+    const lines = fs
+      .readFileSync(logPath, "utf-8")
+      .split("\n");
+
     const keptLines: string[] = [];
     let keptBytes = 0;
 
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const lineBytes = Buffer.byteLength(`${lines[i]}\n`, "utf-8");
+    for (
+      let i = lines.length - 1;
+      i >= 0;
+      i--
+    ) {
+      const lineBytes = Buffer.byteLength(
+        `${lines[i]}\n`,
+        "utf-8"
+      );
 
-      if (keptBytes + lineBytes > TRIM_TARGET_BYTES) {
+      if (
+        keptBytes + lineBytes >
+        TRIM_TARGET_BYTES
+      ) {
         break;
       }
 
@@ -47,22 +83,38 @@ function trimLogFile(logPath: string, maxSize: number) {
       keptBytes += lineBytes;
     }
 
-    fs.writeFileSync(logPath, keptLines.join("\n"), "utf-8");
+    fs.writeFileSync(
+      logPath,
+      keptLines.join("\n"),
+      "utf-8"
+    );
   } catch {
-    // Ignore trim errors
+    // Ignore log trimming errors
   }
 }
 
-function writeToLogFile(source: LogSource, entries: unknown[]) {
-  if (entries.length === 0) return;
+function writeToLogFile(
+  source: LogSource,
+  entries: unknown[]
+) {
+  if (entries.length === 0) {
+    return;
+  }
 
   ensureLogDir();
 
-  const logPath = path.join(LOG_DIR, `${source}.log`);
+  const logPath = path.join(
+    LOG_DIR,
+    `${source}.log`
+  );
 
   const lines = entries.map((entry) => {
-    const ts = new Date().toISOString();
-    return `[${ts}] ${JSON.stringify(entry)}`;
+    const timestamp =
+      new Date().toISOString();
+
+    return `[${timestamp}] ${JSON.stringify(
+      entry
+    )}`;
   });
 
   fs.appendFileSync(
@@ -71,37 +123,45 @@ function writeToLogFile(source: LogSource, entries: unknown[]) {
     "utf-8"
   );
 
-  trimLogFile(logPath, MAX_LOG_SIZE_BYTES);
+  trimLogFile(
+    logPath,
+    MAX_LOG_SIZE_BYTES
+  );
 }
 
-/**
- * Vite plugin to collect browser debug logs
- */
 function vitePluginManusDebugCollector(): Plugin {
   return {
     name: "manus-debug-collector",
 
     transformIndexHtml(html) {
-      if (process.env.NODE_ENV === "production") {
+      if (
+        process.env.NODE_ENV ===
+        "production"
+      ) {
         return html;
       }
 
       return {
         html,
+
         tags: [
           {
             tag: "script",
+
             attrs: {
               src: "/__manus__/debug-collector.js",
               defer: true,
             },
+
             injectTo: "head",
           },
         ],
       };
     },
 
-    configureServer(server: ViteDevServer) {
+    configureServer(
+      server: ViteDevServer
+    ) {
       server.middlewares.use(
         "/__manus__/logs",
         (req, res, next) => {
@@ -109,22 +169,33 @@ function vitePluginManusDebugCollector(): Plugin {
             return next();
           }
 
-          const handlePayload = (payload: any) => {
-            if (payload.consoleLogs?.length > 0) {
+          const handlePayload = (
+            payload: any
+          ) => {
+            if (
+              payload.consoleLogs?.length >
+              0
+            ) {
               writeToLogFile(
                 "browserConsole",
                 payload.consoleLogs
               );
             }
 
-            if (payload.networkRequests?.length > 0) {
+            if (
+              payload.networkRequests
+                ?.length > 0
+            ) {
               writeToLogFile(
                 "networkRequests",
                 payload.networkRequests
               );
             }
 
-            if (payload.sessionEvents?.length > 0) {
+            if (
+              payload.sessionEvents
+                ?.length > 0
+            ) {
               writeToLogFile(
                 "sessionReplay",
                 payload.sessionEvents
@@ -132,7 +203,8 @@ function vitePluginManusDebugCollector(): Plugin {
             }
 
             res.writeHead(200, {
-              "Content-Type": "application/json",
+              "Content-Type":
+                "application/json",
             });
 
             res.end(
@@ -142,7 +214,11 @@ function vitePluginManusDebugCollector(): Plugin {
             );
           };
 
-          const reqBody = (req as { body?: unknown }).body;
+          const reqBody = (
+            req as {
+              body?: unknown;
+            }
+          ).body;
 
           if (
             reqBody &&
@@ -150,15 +226,16 @@ function vitePluginManusDebugCollector(): Plugin {
           ) {
             try {
               handlePayload(reqBody);
-            } catch (e) {
+            } catch (error) {
               res.writeHead(400, {
-                "Content-Type": "application/json",
+                "Content-Type":
+                  "application/json",
               });
 
               res.end(
                 JSON.stringify({
                   success: false,
-                  error: String(e),
+                  error: String(error),
                 })
               );
             }
@@ -174,17 +251,20 @@ function vitePluginManusDebugCollector(): Plugin {
 
           req.on("end", () => {
             try {
-              const payload = JSON.parse(body);
+              const payload =
+                JSON.parse(body);
+
               handlePayload(payload);
-            } catch (e) {
+            } catch (error) {
               res.writeHead(400, {
-                "Content-Type": "application/json",
+                "Content-Type":
+                  "application/json",
               });
 
               res.end(
                 JSON.stringify({
                   success: false,
-                  error: String(e),
+                  error: String(error),
                 })
               );
             }
@@ -195,102 +275,140 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-/**
- * Manus Storage Proxy
- */
+// =============================================================================
+// Manus Storage Proxy
+// =============================================================================
+
 function vitePluginStorageProxy(): Plugin {
   return {
     name: "manus-storage-proxy",
 
-    configureServer(server: ViteDevServer) {
+    configureServer(
+      server: ViteDevServer
+    ) {
       server.middlewares.use(
         "/manus-storage",
         async (req, res) => {
-          const key = req.url?.replace(/^\//, "");
+          const key =
+            req.url?.replace(/^\//, "");
 
           if (!key) {
             res.writeHead(400, {
-              "Content-Type": "text/plain",
+              "Content-Type":
+                "text/plain",
             });
 
-            res.end("Missing storage key");
+            res.end(
+              "Missing storage key"
+            );
+
             return;
           }
 
           const forgeBaseUrl = (
-            process.env.BUILT_IN_FORGE_API_URL || ""
+            process.env
+              .BUILT_IN_FORGE_API_URL ||
+            ""
           ).replace(/\/+$/, "");
 
           const forgeKey =
-            process.env.BUILT_IN_FORGE_API_KEY;
+            process.env
+              .BUILT_IN_FORGE_API_KEY;
 
-          if (!forgeBaseUrl || !forgeKey) {
+          if (
+            !forgeBaseUrl ||
+            !forgeKey
+          ) {
             res.writeHead(500, {
-              "Content-Type": "text/plain",
+              "Content-Type":
+                "text/plain",
             });
 
-            res.end("Storage proxy not configured");
+            res.end(
+              "Storage proxy not configured"
+            );
+
             return;
           }
 
           try {
-            const forgeUrl = new URL(
-              "v1/storage/presign/get",
-              forgeBaseUrl + "/"
+            const forgeUrl =
+              new URL(
+                "v1/storage/presign/get",
+                forgeBaseUrl + "/"
+              );
+
+            forgeUrl.searchParams.set(
+              "path",
+              key
             );
 
-            forgeUrl.searchParams.set("path", key);
-
-            const forgeResp = await fetch(
-              forgeUrl,
-              {
+            const forgeResponse =
+              await fetch(forgeUrl, {
                 headers: {
                   Authorization: `Bearer ${forgeKey}`,
                 },
-              }
-            );
-
-            if (!forgeResp.ok) {
-              res.writeHead(502, {
-                "Content-Type": "text/plain",
               });
 
-              res.end("Storage backend error");
+            if (
+              !forgeResponse.ok
+            ) {
+              res.writeHead(502, {
+                "Content-Type":
+                  "text/plain",
+              });
+
+              res.end(
+                "Storage backend error"
+              );
+
               return;
             }
 
             const { url } =
-              (await forgeResp.json()) as {
+              (await forgeResponse.json()) as {
                 url: string;
               };
 
             if (!url) {
               res.writeHead(502, {
-                "Content-Type": "text/plain",
+                "Content-Type":
+                  "text/plain",
               });
 
-              res.end("Empty signed URL");
+              res.end(
+                "Empty signed URL"
+              );
+
               return;
             }
 
             res.writeHead(307, {
               Location: url,
-              "Cache-Control": "no-store",
+              "Cache-Control":
+                "no-store",
             });
 
             res.end();
           } catch {
             res.writeHead(502, {
-              "Content-Type": "text/plain",
+              "Content-Type":
+                "text/plain",
             });
 
-            res.end("Storage proxy error");
+            res.end(
+              "Storage proxy error"
+            );
           }
         }
       );
     },
   };
 }
+
+// =============================================================================
+// Plugins
+// =============================================================================
 
 const plugins = [
   react(),
@@ -301,9 +419,19 @@ const plugins = [
   vitePluginStorageProxy(),
 ];
 
+// =============================================================================
+// Vite Configuration
+// =============================================================================
+
 export default defineConfig({
-  // GitHub Pages project URL:
-  // https://namadmohammed0-rgb.github.io/Portfolio2/
+  /*
+   * GitHub Pages URL:
+   *
+   * https://namadmohammed0-rgb.github.io/Portfolio2/
+   *
+   * Repository:
+   * Portfolio2
+   */
 
   base: "/Portfolio2/",
 
@@ -312,34 +440,43 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(
-        import.meta.dirname,
+        PROJECT_ROOT,
         "client",
         "src"
       ),
 
       "@shared": path.resolve(
-        import.meta.dirname,
+        PROJECT_ROOT,
         "shared"
       ),
 
       "@assets": path.resolve(
-        import.meta.dirname,
+        PROJECT_ROOT,
         "attached_assets"
       ),
     },
   },
 
-  envDir: path.resolve(import.meta.dirname),
+  envDir: PROJECT_ROOT,
 
+  /*
+   * Your React application is inside
+   * the client folder.
+   */
   root: path.resolve(
-    import.meta.dirname,
+    PROJECT_ROOT,
     "client"
   ),
 
+  /*
+   * IMPORTANT:
+   *
+   * GitHub Pages will publish the
+   * contents of dist/.
+   */
   build: {
-    // GitHub Pages expects the built website here
     outDir: path.resolve(
-      import.meta.dirname,
+      PROJECT_ROOT,
       "dist"
     ),
 
