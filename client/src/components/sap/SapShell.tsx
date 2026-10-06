@@ -1,29 +1,35 @@
 import type { ReactNode } from "react";
-import { MenuBar } from "./MenuBar";
-import { SideDrawer } from "./SideDrawer";
-import { StatusBar } from "./StatusBar";
-import { TitleBar } from "./TitleBar";
-import { Toolbar } from "./Toolbar";
 
-export function SapShell({ children, drawerOpen, onToggleDrawer }: { children: ReactNode; drawerOpen: boolean; onToggleDrawer: () => void }) {
+export function SapShell({ children }: { children: ReactNode }) {
   return (
     <div className="sap-shell">
-      <div className="sap-app-window">
-        <MenuBar />
-        <TitleBar />
-        <Toolbar />
-        <div className="sap-content-area">
-          <SideDrawer open={drawerOpen} onToggle={onToggleDrawer} />
-          <div className="sap-main-pane">
-            <div className="sap-desktop-actions">
-              <button type="button" className="sap-hamburger" aria-label="Open navigation" onClick={onToggleDrawer}>
-                ☰
-              </button>
-            </div>
-            {children}
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          padding: "16px 28px",
+          borderBottom: "1px solid #d9e1ea",
+          background: "#f8fafc",
+          color: "#18212d",
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#4d6478", marginBottom: 4 }}>
+            Portfolio
           </div>
+          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.04em" }}>Namad Mohammed</div>
         </div>
-        <StatusBar />
+
+        <div style={{ textAlign: "right", fontSize: 12, lineHeight: 1.4, color: "#52657a" }}>
+          <div style={{ fontWeight: 700, color: "#18212d" }}>ERP Integration &amp; Business Analyst</div>
+          <div>SAP ERP • API Integration • SQL • Automation • Business Analysis</div>
+        </div>
+      </header>
+
+      <div className="sap-main-pane" style={{ background: "#edf2f7" }}>
+        {children}
       </div>
     </div>
   );
